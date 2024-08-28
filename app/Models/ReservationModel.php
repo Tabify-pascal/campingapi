@@ -32,7 +32,7 @@ class ReservationModel extends Model
         'email'            => 'required|valid_email|max_length[255]',
         'date_reservation' => 'required|valid_date',
         'guests'           => 'required|is_natural_no_zero',
-        'spot'             => 'required|max_length[100]',
+        'spot'             => 'required|is_natural_no_zero',
         'comment'          => 'permit_empty|string',
     ];
 
@@ -60,7 +60,7 @@ class ReservationModel extends Model
         ],
         'spot' => [
             'required' => 'Spot is required',
-            'max_length' => 'Spot cannot exceed 100 characters',
+            'is_natural_no_zero' => 'Spot must be a valid spot ID',
         ],
     ];
 }

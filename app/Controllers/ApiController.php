@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\ApiKeyModel;
+use App\Models\ReservationModel;
+use App\Models\SpotAvailabilityModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class ApiController extends BaseController
@@ -15,20 +17,41 @@ class ApiController extends BaseController
 
     public function insert()
     {
-        $reservationModel = new \App\Models\ReservationModel();
+        $reservationModel = new ReservationModel();
+        $availabilityModel = new SpotAvailabilityModel();
 
         // Haal de POST-gegevens op
         $post = json_decode($this->request->getBody());
+        $spot_id = $post->spot;
+        $date_reservation = $post->date_reservation;
+
+         // Check if the spot is available on the requested date
+        if (!$availabilityModel->isSpotAvailable($spot_id, $date_reservation)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Spot is not available on the selected date.',
+            ]);
+        }
+
+        // Reserve the spot by setting its availability to false
+        if (!$availabilityModel->reserveSpot($spot_id, $date_reservation)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Failed to reserve the spot. Please try again.',
+            ]);
+        }
+
         $data = [
             'name'             => $post->name,
             'phone_number'     => $post->phone_number,
             'email'            => $post->email,
-            'date_reservation' => $post->date_reservation,
+            'date_reservation' => $date_reservation,
             'guests'           => $post->guests,
-            'spot'             => $post->spot,
+            'spot'             => $spot_id,
             'comment'          => $post->comment,
-            'user_id'          => $this->get_user_id(),
         ];
+
+        log_message('info', print_r($data));
     
         // Probeer de gegevens op te slaan in de database
         if ($reservationModel->insert($data)) {
@@ -48,7 +71,7 @@ class ApiController extends BaseController
 
     public function get_reservations_between_dates()
     {
-        $reservationModel = new \App\Models\ReservationModel();
+        $reservationModel = new ReservationModel();
         $post = json_decode($this->request->getBody());
 
         $data = $reservationModel
@@ -72,7 +95,7 @@ class ApiController extends BaseController
     
     public function get_all()
     {
-        $reservationModel = new \App\Models\ReservationModel();
+        $reservationModel = new ReservationModel();
         $data = $reservationModel
             ->select('id, name, phone_number, email, date_reservation, guests, spot, comment, created_at, updated_at') // Specificeer alle velden behalve user_id
             ->where('user_id', $this->get_user_id())
@@ -100,22 +123,6 @@ class ApiController extends BaseController
         return $apiKeyRecord['user_id'];
     }
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     public function store()
     {

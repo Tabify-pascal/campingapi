@@ -12,6 +12,45 @@
     <p id="api-key-display"></p>
     <a href="/documentation">DOCUMENTATION</a>
 
+    <section>
+        <h2>Make a Reservation</h2>
+        <form action="<?= base_url('dashboard/submit_reservation') ?>" method="post">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required><br>
+
+            <label for="phone_number">Phone Number:</label>
+            <input type="text" id="phone_number" name="phone_number" required><br>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required><br>
+
+            <label for="date_from">Start Date:</label>
+            <input type="date" id="date_from" name="date_from" required><br>
+
+            <label for="date_to">End Date:</label>
+            <input type="date" id="date_to" name="date_to" required><br>
+
+            <label for="guests">Number of Guests:</label>
+            <input type="number" id="guests" name="guests" required><br>
+
+            <label for="spot">Spot ID:</label>
+            <input type="number" id="spot" name="spot" required><br>
+
+            <label for="comment">Comment:</label>
+            <textarea id="comment" name="comment"></textarea><br>
+
+            <button type="submit">Submit Reservation</button>
+        </form>
+        <p id="reservation-status"></p>
+    </section>
+        <?php if (session()->get('success')): ?>
+            <p style="color: green;"><?= session()->get('success') ?></p>
+        <?php endif; ?>
+
+        <?php if (session()->get('error')): ?>
+            <p style="color: red;"><?= session()->get('error') ?></p>
+        <?php endif; ?>
+
     <script>
         $('#generate-key').on('click', function() {
             $.ajax({
@@ -29,6 +68,7 @@
                 }
             });
         });
+
     </script>
 </body>
 </html>
