@@ -50,7 +50,7 @@
 </head>
 
 <body>
-        <a href="/">HOME</a>
+    <a href="/">HOME</a>
     <div class="container">
         <h1 class="text-center">API Documentation</h1>
 
@@ -72,8 +72,8 @@
                 <h5>Request Body:</h5>
                 <div class="example">
                     <pre>{
-    "date_start": "2024-09-01",
-    "date_end": "2024-09-30"
+    "date_from": "2024-09-01",
+    "date_to": "2024-09-30"
 }</pre>
                 </div>
 
@@ -86,8 +86,8 @@ Headers:
 
 Body:
 {
-    "date_start": "2024-09-01",
-    "date_end": "2024-09-30"
+    "date_from": "2024-09-01",
+    "date_to": "2024-09-30"
 }</pre>
                 </div>
             </div>
@@ -99,7 +99,7 @@ Body:
                 <p class="card-text">
                     <span class="method">POST</span> <span class="endpoint"><?= base_url() ?>api/insert</span>
                 </p>
-                <p>This endpoint inserts a new reservation into the system.</p>
+                <p>This endpoint inserts a new reservation into the system over a range of dates.</p>
 
                 <h5>Request Headers:</h5>
                 <ul>
@@ -113,9 +113,10 @@ Body:
     "name": "John Doe",
     "phone_number": "123-456-7890",
     "email": "johndoe@example.com",
-    "date_reservation": "2024-09-15",
+    "date_from": "2024-09-15",
+    "date_to": "2024-09-20",
     "guests": 4,
-    "spot": "A12",
+    "spot": 2,
     "comment": "Prefer a quiet spot near the lake."
 }</pre>
                 </div>
@@ -132,45 +133,47 @@ Body:
     "name": "John Doe",
     "phone_number": "123-456-7890",
     "email": "johndoe@example.com",
-    "date_reservation": "2024-09-15",
+    "date_from": "2024-09-15",
+    "date_to": "2024-09-20",
     "guests": 4,
-    "spot": "A12",
+    "spot": 2,
     "comment": "Prefer a quiet spot near the lake."
 }</pre>
                 </div>
             </div>
         </div>
+
         <div class="card mb-4">
-    <div class="card-body">
-        <h2 class="card-title">Get All Reservations</h2>
-        <p class="card-text">
-            <span class="method">POST</span> <span class="endpoint"><?= base_url() ?>api/get_all</span>
-        </p>
-        <p>This endpoint retrieves all reservations from the system.</p>
+            <div class="card-body">
+                <h2 class="card-title">Get All Reservations</h2>
+                <p class="card-text">
+                    <span class="method">POST</span> <span class="endpoint"><?= base_url() ?>api/get_all</span>
+                </p>
+                <p>This endpoint retrieves all reservations from the system.</p>
         
-        <h5>Request Headers:</h5>
-        <ul>
-            <li><strong>Authorization:</strong> Bearer YOUR_API_KEY</li>
-            <li><strong>Content-Type:</strong> application/json</li>
-        </ul>
+                <h5>Request Headers:</h5>
+                <ul>
+                    <li><strong>Authorization:</strong> Bearer YOUR_API_KEY</li>
+                    <li><strong>Content-Type:</strong> application/json</li>
+                </ul>
 
-        <h5>Request Body:</h5>
-        <div class="example">
-            <pre>{}</pre>
-        </div>
+                <h5>Request Body:</h5>
+                <div class="example">
+                    <pre>{}</pre>
+                </div>
 
-        <h5>Example Request:</h5>
-        <div class="example">
-            <pre>POST <?= base_url() ?>api/get_all
+                <h5>Example Request:</h5>
+                <div class="example">
+                    <pre>POST <?= base_url() ?>api/get_all
 Headers:
     Authorization: Bearer YOUR_API_KEY
     Content-Type: application/json
 
 Body:
 {}</pre>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
     </div>
 

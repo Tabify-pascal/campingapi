@@ -20,47 +20,72 @@ class ApiController extends BaseController
         $reservationModel = new ReservationModel();
         $availabilityModel = new SpotAvailabilityModel();
 
-        // Haal de POST-gegevens op
+        // Retrieve the POST data
         $post = json_decode($this->request->getBody());
+
+        // Validate that the necessary keys exist in the POST data
+        if (!isset($post->spot, $post->date_from, $post->date_to)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Spot, start date, and end date are required.',
+            ]);
+        }
+
         $spot_id = $post->spot;
-        $date_reservation = $post->date_reservation;
+        $date_from = $post->date_from;
+        $date_to = $post->date_to;
 
-         // Check if the spot is available on the requested date
-        if (!$availabilityModel->isSpotAvailable($spot_id, $date_reservation)) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Spot is not available on the selected date.',
-            ]);
+        // Check if the spot is available for the entire date range
+        $currentDate = strtotime($date_from);
+        $endDate = strtotime($date_to);
+
+        while ($currentDate <= $endDate) {
+            $date = date('Y-m-d', $currentDate);
+
+            if (!$availabilityModel->isSpotAvailable($spot_id, $date)) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => "Spot is not available from $date_from to $date_to.",
+                ]);
+            }
+
+            $currentDate = strtotime('+1 day', $currentDate);
         }
 
-        // Reserve the spot by setting its availability to false
-        if (!$availabilityModel->reserveSpot($spot_id, $date_reservation)) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Failed to reserve the spot. Please try again.',
-            ]);
+        // Reserve the spot for the entire date range
+        $currentDate = strtotime($date_from);
+        while ($currentDate <= $endDate) {
+            $date = date('Y-m-d', $currentDate);
+
+            if (!$availabilityModel->reserveSpot($spot_id, $date)) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => "Failed to reserve the spot for $date. Please try again.",
+                ]);
+            }
+
+            $currentDate = strtotime('+1 day', $currentDate);
         }
 
+        // Prepare the reservation data
         $data = [
             'name'             => $post->name,
             'phone_number'     => $post->phone_number,
             'email'            => $post->email,
-            'date_reservation' => $date_reservation,
+            'date_reservation' => $date_from,  // Use the start date for the reservation record
             'guests'           => $post->guests,
             'spot'             => $spot_id,
             'comment'          => $post->comment,
         ];
 
-        log_message('info', print_r($data));
-    
-        // Probeer de gegevens op te slaan in de database
+        // Try to save the data to the database
         if ($reservationModel->insert($data)) {
             return $this->response->setStatusCode(201)->setJSON([
                 'success' => true,
-                'message' => 'Reservation successfully created.',
+                'message' => "Reservation successfully created from $date_from to $date_to.",
             ]);
         } else {
-            // Als er een fout is, retourneer dan de foutmeldingen
+            // If there's an error, return the validation messages
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'errors'  => $reservationModel->errors(),
@@ -152,6 +177,91 @@ class ApiController extends BaseController
                 return $this->response->setJSON(['success' => false, 'error' => 'Could not save API key.']);
             }
         }
+    }
+
+    public function populateDatabase()
+    {
+        $reservationModel = new ReservationModel();
+        $availabilityModel = new SpotAvailabilityModel();
+        $campsiteSpotModel = new \App\Models\CampsiteSpotModel();
+
+        // Clear the existing data
+        $reservationModel->truncate();
+        $availabilityModel->truncate();
+
+        // Get today's date
+        $currentDate = strtotime(date('Y-m-d'));
+        $endDate = strtotime('+100 days', $currentDate);
+
+        // Get all spots
+        $spots = $campsiteSpotModel->findAll();
+
+        foreach ($spots as $spot) {
+            $spot_id = $spot['id'];
+
+            // Populate spot availability for the next 100 days
+            $availabilityData = [];
+            $currentDateTemp = $currentDate;
+            while ($currentDateTemp <= $endDate) {
+                $date = date('Y-m-d', $currentDateTemp);
+                $availabilityData[] = [
+                    'spot_id' => $spot_id,
+                    'date' => $date,
+                    'is_available' => true,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ];
+                $currentDateTemp = strtotime('+1 day', $currentDateTemp);
+            }
+            $availabilityModel->insertBatch($availabilityData);
+
+            // Make random reservations for this spot
+            $reservationCount = rand(3, 10);
+            for ($i = 0; $i < $reservationCount; $i++) {
+                $reservationStartDate = date('Y-m-d', strtotime('+' . rand(0, 99) . ' days', $currentDate));
+                $reservationEndDate = date('Y-m-d', strtotime('+' . rand(1, 7) . ' days', strtotime($reservationStartDate)));
+
+                // Check if the spot is available for the entire range
+                $currentDateTemp = strtotime($reservationStartDate);
+                $available = true;
+                while ($currentDateTemp <= strtotime($reservationEndDate)) {
+                    $date = date('Y-m-d', $currentDateTemp);
+                    if (!$availabilityModel->isSpotAvailable($spot_id, $date)) {
+                        $available = false;
+                        break;
+                    }
+                    $currentDateTemp = strtotime('+1 day', $currentDateTemp);
+                }
+
+                if ($available) {
+                    // Reserve the spot
+                    $currentDateTemp = strtotime($reservationStartDate);
+                    while ($currentDateTemp <= strtotime($reservationEndDate)) {
+                        $date = date('Y-m-d', $currentDateTemp);
+                        $availabilityModel->reserveSpot($spot_id, $date);
+                        $currentDateTemp = strtotime('+1 day', $currentDateTemp);
+                    }
+
+                    // Create the reservation record
+                    $reservationModel->insert([
+                        'name' => 'Random User ' . rand(1, 100),
+                        'phone_number' => '123-456-789' . rand(0, 9),
+                        'email' => 'randomuser' . rand(1, 100) . '@example.com',
+                        'date_reservation' => $reservationStartDate,
+                        'guests' => rand(1, 6),
+                        'spot' => $spot_id,
+                        'comment' => 'This is a random reservation.',
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+                }
+            }
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Database successfully populated with random reservations and availability data.',
+        ]);
     }
     
 }

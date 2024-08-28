@@ -13,6 +13,12 @@
     <a href="/documentation">DOCUMENTATION</a>
 
     <section>
+        <h2>Populate Database</h2>
+        <button id="populate-database">Populate Database</button>
+        <p id="populate-status"></p>
+    </section>
+
+    <section>
         <h2>Make a Reservation</h2>
         <form action="<?= base_url('dashboard/submit_reservation') ?>" method="post">
             <label for="name">Name:</label>
@@ -65,6 +71,20 @@
                 },
                 error: function() {
                     $('#api-key-display').text('An error occurred.');
+                }
+            });
+        });
+
+        // Populate Database
+        $('#populate-database').on('click', function() {
+            $.ajax({
+                url: '<?= base_url('populate-database') ?>',
+                type: 'GET',
+                success: function(response) {
+                    $('#populate-status').text('Database successfully populated.');
+                },
+                error: function() {
+                    $('#populate-status').text('An error occurred while populating the database.');
                 }
             });
         });
