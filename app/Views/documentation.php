@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API Documentation</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -58,8 +57,7 @@
             <div class="card-body">
                 <h2 class="card-title">Get Reservations Between Dates</h2>
                 <p class="card-text">
-                    <span class="method">POST</span> <span
-                        class="endpoint"><?= base_url() ?>api/get_reservations_between_dates</span>
+                    <span class="method">POST</span> <span class="endpoint"><?= base_url() ?>api/get_reservations_between_dates</span>
                 </p>
                 <p>This endpoint retrieves reservations between two specified dates.</p>
 
@@ -175,9 +173,88 @@ Body:
             </div>
         </div>
 
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="card-title">Populate Database</h2>
+                <p class="card-text">
+                    <span class="method">POST</span> <span class="endpoint"><?= base_url() ?>api/populate-database</span>
+                </p>
+                <p>This endpoint populates the database with random reservations and spot availability data for the next 100 days.</p>
+
+                <h5>Request Headers:</h5>
+                <ul>
+                    <li><strong>Authorization:</strong> Bearer YOUR_API_KEY</li>
+                    <li><strong>Content-Type:</strong> application/json</li>
+                </ul>
+
+                <h5>Example Request:</h5>
+                <div class="example">
+                    <pre>POST <?= base_url() ?>api/populate-database
+Headers:
+    Authorization: Bearer YOUR_API_KEY
+    Content-Type: application/json
+
+Body:
+{}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="card-title">Get Available Dates</h2>
+                <p class="card-text">
+                    <span class="method">POST</span> <span class="endpoint"><?= base_url() ?>api/get-available-dates</span>
+                </p>
+                <p>This endpoint retrieves the available dates for a specific spot within a given date range.</p>
+
+                <h5>Request Headers:</h5>
+                <ul>
+                    <li><strong>Authorization:</strong> Bearer YOUR_API_KEY</li>
+                    <li><strong>Content-Type:</strong> application/json</li>
+                </ul>
+
+                <h5>Request Body:</h5>
+                <div class="example">
+                    <pre>{
+    "spot_id": 2,
+    "date_from": "2024-09-01",
+    "date_to": "2024-09-30"
+}</pre>
+                </div>
+
+                <h5>Example Request:</h5>
+                <div class="example">
+                    <pre>POST <?= base_url() ?>api/get-available-dates
+Headers:
+    Authorization: Bearer YOUR_API_KEY
+    Content-Type: application/json
+
+Body:
+{
+    "spot_id": 2,
+    "date_from": "2024-09-01",
+    "date_to": "2024-09-30"
+}</pre>
+                </div>
+
+                <h5>Example Response:</h5>
+                <div class="response">
+                    <pre>{
+    "success": true,
+    "available_dates": [
+        "2024-09-01",
+        "2024-09-03",
+        "2024-09-05",
+        ...
+    ]
+}</pre>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
