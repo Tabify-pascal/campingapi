@@ -5,9 +5,10 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/', 'Home::index', ['filter' => 'auth']);
+$routes->get('/', 'DashboardController::index', ['filter' => 'auth']);
 $routes->get('/documentation', 'Home::documentation', ['filter' => 'auth']);
 $routes->post('apikey/store', 'ApiController::store', ['filter' => 'auth']);
+$routes->post('dashboard/submit_reservation', 'DashboardController::submitReservation');
 
 
 $routes->group('api', ['filter' => 'apikey'], function ($routes) {
