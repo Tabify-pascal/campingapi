@@ -93,6 +93,49 @@ class ApiController extends BaseController
         }
     }
 
+    public function getAvailableDates()
+    {
+        $availabilityModel = new SpotAvailabilityModel();
+
+        // Retrieve the POST data
+        $post = json_decode($this->request->getBody());
+
+        // Validate that the necessary keys exist in the POST data
+        if (!isset($post->spot_id, $post->date_from, $post->date_to)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Spot ID, start date, and end date are required.',
+            ]);
+        }
+
+        $spot_id = $post->spot_id;
+        $date_from = $post->date_from;
+        $date_to = $post->date_to;
+
+        // Initialize an array to hold the available dates
+        $availableDates = [];
+
+        // Loop through each date in the range and check availability
+        $currentDate = strtotime($date_from);
+        $endDate = strtotime($date_to);
+
+        while ($currentDate <= $endDate) {
+            $date = date('Y-m-d', $currentDate);
+
+            if ($availabilityModel->isSpotAvailable($spot_id, $date)) {
+                $availableDates[] = $date;
+            }
+
+            $currentDate = strtotime('+1 day', $currentDate);
+        }
+
+        // Return the available dates
+        return $this->response->setJSON([
+            'success' => true,
+            'available_dates' => $availableDates,
+        ]);
+    }
+
 
     public function get_reservations_between_dates()
     {
@@ -100,7 +143,7 @@ class ApiController extends BaseController
         $post = json_decode($this->request->getBody());
 
         $data = $reservationModel
-            ->select('id, name, phone_number, email, date_reservation, guests, spot, comment, created_at, updated_at') // Specificeer alle velden behalve user_id
+            ->select('id, name, phone_number, email, date_reservation, guests, spot, comment, created_at, updated_at') 
             ->where('date_reservation >=', $post->date_start)
             ->where('date_reservation <=', $post->date_end)
             ->where('user_id', $this->get_user_id())

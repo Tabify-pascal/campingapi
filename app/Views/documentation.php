@@ -1,183 +1,226 @@
-<!DOCTYPE html>
-<html lang="en">
+<?= $this->extend('layouts/main_template') ?>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Documentation</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-        }
+<?= $this->section('title') ?>
+API Documentation
+<?= $this->endSection() ?>
 
-        .container {
-            margin-top: 50px;
-        }
+<?= $this->section('content') ?>
+<h1 class="text-center text-dark mb-5">API Documentation</h1>
 
-        h1 {
-            color: #343a40;
-            margin-bottom: 40px;
-        }
-
-        .endpoint {
-            font-size: 1.2rem;
-            color: #e74c3c;
-        }
-
-        .method {
-            font-weight: bold;
-            color: #3498db;
-        }
-
-        .example {
-            background-color: #ecf0f1;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            margin-top: 15px;
-        }
-
-        .response {
-            background-color: #f1c40f;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            margin-top: 15px;
-        }
-    </style>
-</head>
-
-<body>
-    <a href="/">HOME</a>
-    <div class="container">
-        <h1 class="text-center">API Documentation</h1>
-
-        <div class="card mb-4">
-            <div class="card-body">
-                <h2 class="card-title">Get Reservations Between Dates</h2>
-                <p class="card-text">
-                    <span class="method">POST</span> <span
-                        class="endpoint"><?= base_url() ?>api/get_reservations_between_dates</span>
-                </p>
-                <p>This endpoint retrieves reservations between two specified dates.</p>
-
-                <h5>Request Headers:</h5>
-                <ul>
-                    <li><strong>Authorization:</strong> Bearer YOUR_API_KEY</li>
-                    <li><strong>Content-Type:</strong> application/json</li>
-                </ul>
-
-                <h5>Request Body:</h5>
-                <div class="example">
-                    <pre>{
-    "date_from": "2024-09-01",
-    "date_to": "2024-09-30"
-}</pre>
-                </div>
-
-                <h5>Example Request:</h5>
-                <div class="example">
-                    <pre>POST <?= base_url() ?>api/get_reservations_between_dates
-Headers:
-    Authorization: Bearer YOUR_API_KEY
-    Content-Type: application/json
-
-Body:
-{
-    "date_from": "2024-09-01",
-    "date_to": "2024-09-30"
-}</pre>
-                </div>
-            </div>
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <h2 class="card-title">Getting Started</h2>
+        <p class="card-text">To use our API, you need to create an account. Once registered and logged in, you can generate an API key, which is required for authentication in all API requests.</p>
+        <p class="card-text">To create an account, please visit the <a href="<?= base_url('register') ?>">registration page</a>. After logging in, you can generate your API key from the dashboard.</p>
+        <p class="card-text">Use this API key in the Authorization header for all API requests:</p>
+        <div class="bg-light p-3 rounded border">
+            <pre>Authorization: Bearer YOUR_API_KEY</pre>
         </div>
+    </div>
+</div>
 
-        <div class="card mb-4">
-            <div class="card-body">
-                <h2 class="card-title">Insert Reservation</h2>
-                <p class="card-text">
-                    <span class="method">POST</span> <span class="endpoint"><?= base_url() ?>api/insert</span>
-                </p>
-                <p>This endpoint inserts a new reservation into the system over a range of dates.</p>
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <h2 class="card-title">Populate Database</h2>
+        <p class="card-text">
+            <span class="badge bg-primary">POST</span> 
+            <span class="text-danger"><?= base_url() ?>api/populate-database</span>
+        </p>
+        <p>This endpoint populates the database with random reservations and spot availability data for the next 100 days.</p>
 
-                <h5>Request Headers:</h5>
-                <ul>
-                    <li><strong>Authorization:</strong> Bearer YOUR_API_KEY</li>
-                    <li><strong>Content-Type:</strong> application/json</li>
-                </ul>
+        <h5>Request Headers:</h5>
+        <ul>
+            <li><strong>Authorization:</strong> Bearer YOUR_API_KEY</li>
+            <li><strong>Content-Type:</strong> application/json</li>
+        </ul>
 
-                <h5>Request Body:</h5>
-                <div class="example">
-                    <pre>{
-    "name": "John Doe",
-    "phone_number": "123-456-7890",
-    "email": "johndoe@example.com",
-    "date_from": "2024-09-15",
-    "date_to": "2024-09-20",
-    "guests": 4,
-    "spot": 2,
-    "comment": "Prefer a quiet spot near the lake."
-}</pre>
-                </div>
-
-                <h5>Example Request:</h5>
-                <div class="example">
-                    <pre>POST <?= base_url() ?>api/insert
+        <h5>Example Request:</h5>
+        <div class="bg-light p-3 rounded border">
+            <pre>POST <?= base_url() ?>api/populate-database
 Headers:
-    Authorization: Bearer YOUR_API_KEY
-    Content-Type: application/json
-
-Body:
-{
-    "name": "John Doe",
-    "phone_number": "123-456-7890",
-    "email": "johndoe@example.com",
-    "date_from": "2024-09-15",
-    "date_to": "2024-09-20",
-    "guests": 4,
-    "spot": 2,
-    "comment": "Prefer a quiet spot near the lake."
-}</pre>
-                </div>
-            </div>
-        </div>
-
-        <div class="card mb-4">
-            <div class="card-body">
-                <h2 class="card-title">Get All Reservations</h2>
-                <p class="card-text">
-                    <span class="method">POST</span> <span class="endpoint"><?= base_url() ?>api/get_all</span>
-                </p>
-                <p>This endpoint retrieves all reservations from the system.</p>
-        
-                <h5>Request Headers:</h5>
-                <ul>
-                    <li><strong>Authorization:</strong> Bearer YOUR_API_KEY</li>
-                    <li><strong>Content-Type:</strong> application/json</li>
-                </ul>
-
-                <h5>Request Body:</h5>
-                <div class="example">
-                    <pre>{}</pre>
-                </div>
-
-                <h5>Example Request:</h5>
-                <div class="example">
-                    <pre>POST <?= base_url() ?>api/get_all
-Headers:
-    Authorization: Bearer YOUR_API_KEY
-    Content-Type: application/json
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
 
 Body:
 {}</pre>
-                </div>
-            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <h2 class="card-title">Get Available Dates</h2>
+        <p class="card-text">
+            <span class="badge bg-primary">POST</span> 
+            <span class="text-danger"><?= base_url() ?>api/get-available-dates</span>
+        </p>
+        <p>This endpoint retrieves the available dates for a specific spot within a given date range.</p>
+
+        <h5>Request Headers:</h5>
+        <ul>
+            <li><strong>Authorization:</strong> Bearer YOUR_API_KEY</li>
+            <li><strong>Content-Type:</strong> application/json</li>
+        </ul>
+
+        <h5>Request Body:</h5>
+        <div class="bg-light p-3 rounded border">
+            <pre>{
+    "spot_id": 2,
+    "date_from": "2024-09-01",
+    "date_to": "2024-09-30"
+}</pre>
         </div>
 
+        <h5>Example Request:</h5>
+        <div class="bg-light p-3 rounded border">
+            <pre>POST <?= base_url() ?>api/get-available-dates
+Headers:
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+Body:
+{
+    "spot_id": 2,
+    "date_from": "2024-09-01",
+    "date_to": "2024-09-30"
+}</pre>
+        </div>
+
+        <h5>Example Response:</h5>
+        <div class="bg-warning p-3 rounded border">
+            <pre>{
+    "success": true,
+    "available_dates": [
+        "2024-09-01",
+        "2024-09-03",
+        "2024-09-05",
+        ...
+    ]
+}</pre>
+        </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <h2 class="card-title">Insert Reservation</h2>
+        <p class="card-text">
+            <span class="badge bg-primary">POST</span> 
+            <span class="text-danger"><?= base_url() ?>api/insert</span>
+        </p>
+        <p>This endpoint inserts a new reservation into the system over a range of dates.</p>
 
-</html>
+        <h5>Request Headers:</h5>
+        <ul>
+            <li><strong>Authorization:</strong> Bearer YOUR_API_KEY</li>
+            <li><strong>Content-Type:</strong> application/json</li>
+        </ul>
+
+        <h5>Request Body:</h5>
+        <div class="bg-light p-3 rounded border">
+            <pre>{
+    "name": "John Doe",
+    "phone_number": "123-456-7890",
+    "email": "johndoe@example.com",
+    "date_from": "2024-09-15",
+    "date_to": "2024-09-20",
+    "guests": 4,
+    "spot": 2,
+    "comment": "Prefer a quiet spot near the lake."
+}</pre>
+        </div>
+
+        <h5>Example Request:</h5>
+        <div class="bg-light p-3 rounded border">
+            <pre>POST <?= base_url() ?>api/insert
+Headers:
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+Body:
+{
+    "name": "John Doe",
+    "phone_number": "123-456-7890",
+    "email": "johndoe@example.com",
+    "date_from": "2024-09-15",
+    "date_to": "2024-09-20",
+    "guests": 4,
+    "spot": 2,
+    "comment": "Prefer a quiet spot near the lake."
+}</pre>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <h2 class="card-title">Get Reservations Between Dates</h2>
+        <p class="card-text">
+            <span class="badge bg-primary">POST</span> 
+            <span class="text-danger"><?= base_url() ?>api/get_reservations_between_dates</span>
+        </p>
+        <p>This endpoint retrieves reservations between two specified dates.</p>
+
+        <h5>Request Headers:</h5>
+        <ul>
+            <li><strong>Authorization:</strong> Bearer YOUR_API_KEY</li>
+            <li><strong>Content-Type:</strong> application/json</li>
+        </ul>
+
+        <h5>Request Body:</h5>
+        <div class="bg-light p-3 rounded border">
+            <pre>{
+    "date_from": "2024-09-01",
+    "date_to": "2024-09-30"
+}</pre>
+        </div>
+
+        <h5>Example Request:</h5>
+        <div class="bg-light p-3 rounded border">
+            <pre>POST <?= base_url() ?>api/get_reservations_between_dates
+Headers:
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+Body:
+{
+    "date_from": "2024-09-01",
+    "date_to": "2024-09-30"
+}</pre>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <h2 class="card-title">Get All Reservations</h2>
+        <p class="card-text">
+            <span class="badge bg-primary">POST</span> 
+            <span class="text-danger"><?= base_url() ?>api/get_all</span>
+        </p>
+        <p>This endpoint retrieves all reservations from the system.</p>
+
+        <h5>Request Headers:</h5>
+        <ul>
+            <li><strong>Authorization:</strong> Bearer YOUR_API_KEY</li>
+            <li><strong>Content-Type:</strong> application/json</li>
+        </ul>
+
+        <h5>Request Body:</h5>
+        <div class="bg-light p-3 rounded border">
+            <pre>{}</pre>
+        </div>
+
+        <h5>Example Request:</h5>
+        <div class="bg-light p-3 rounded border">
+            <pre>POST <?= base_url() ?>api/get_all
+Headers:
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+Body:
+{}</pre>
+        </div>
+    </div>
+</div>
+<?= $this->endSection() ?>
