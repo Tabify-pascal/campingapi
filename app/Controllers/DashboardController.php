@@ -79,7 +79,6 @@ class DashboardController extends Controller
 
     public function populateDatabase()
     {
-        log_message('info','am here');
         $reservationModel = new ReservationModel();
         $availabilityModel = new SpotAvailabilityModel();
         $campsiteSpotModel = new CampsiteSpotModel();

@@ -4,142 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            color: #333;
-        }
-
-        h1, h2 {
-            color: #2c3e50;
-        }
-
-        .container {
-            width: 80%;
-            margin: 20px auto;
-            background-color: #fff;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        input[type="text"],
-        input[type="email"],
-        input[type="date"],
-        input[type="number"],
-        textarea {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        label {
-            font-weight: bold;
-            margin-top: 10px;
-            display: block;
-        }
-
-        .status {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-
-        .status.success {
-            color: green;
-        }
-
-        .status.error {
-            color: red;
-        }
-
-        a {
-            display: inline-block;
-            margin-top: 20px;
-            color: #3498db;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
 </head>
-<body>
+<body class="bg-light">
 
-    <div class="container">
-        <h1>Create API Key</h1>
-        <button id="generate-key">Generate API Key</button>
-        <p id="api-key-display" class="status"></p>
-        <a href="/documentation">DOCUMENTATION</a>
+<?= $this->include('partials/navbar') ?>
 
-        <section>
-            <h2>Populate Database</h2>
-            <button id="populate-database">Populate Database</button>
-            <p id="populate-status" class="status"></p>
-        </section>
+    <div class="container mt-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="card-title">Create API Key</h1>
+                <button id="generate-key" class="btn btn-primary">Generate API Key</button>
+                <p id="api-key-display" class="mt-3"></p>
+            </div>
+        </div>
 
-        <section>
-            <h2>Make a Reservation</h2>
-            <form action="<?= base_url('dashboard/submit_reservation') ?>" method="post">
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required>
+        <div class="card shadow-sm mt-4">
+            <div class="card-body">
+                <h2 class="card-title">Populate Database</h2>
+                <button id="populate-database" class="btn btn-secondary">Populate Database</button>
+                <p id="populate-status" class="mt-3"></p>
+            </div>
+        </div>
 
-                <label for="phone_number">Phone Number:</label>
-                <input type="text" id="phone_number" name="phone_number" required>
+        <div class="card shadow-sm mt-4">
+            <div class="card-body">
+                <h2 class="card-title">Make a Reservation</h2>
+                <form action="<?= base_url('dashboard/submit_reservation') ?>" method="post">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name:</label>
+                        <input type="text" id="name" name="name" class="form-control" required>
+                    </div>
 
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label">Phone Number:</label>
+                        <input type="text" id="phone_number" name="phone_number" class="form-control" required>
+                    </div>
 
-                <label for="date_from">Start Date:</label>
-                <input type="date" id="date_from" name="date_from" required>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email:</label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                    </div>
 
-                <label for="date_to">End Date:</label>
-                <input type="date" id="date_to" name="date_to" required>
+                    <div class="mb-3">
+                        <label for="date_from" class="form-label">Start Date:</label>
+                        <input type="date" id="date_from" name="date_from" class="form-control" required>
+                    </div>
 
-                <label for="guests">Number of Guests:</label>
-                <input type="number" id="guests" name="guests" required>
+                    <div class="mb-3">
+                        <label for="date_to" class="form-label">End Date:</label>
+                        <input type="date" id="date_to" name="date_to" class="form-control" required>
+                    </div>
 
-                <label for="spot">Spot ID:</label>
-                <input type="number" id="spot" name="spot" required>
+                    <div class="mb-3">
+                        <label for="guests" class="form-label">Number of Guests:</label>
+                        <input type="number" id="guests" name="guests" class="form-control" required>
+                    </div>
 
-                <label for="comment">Comment:</label>
-                <textarea id="comment" name="comment"></textarea>
+                    <div class="mb-3">
+                        <label for="spot" class="form-label">Spot ID:</label>
+                        <input type="number" id="spot" name="spot" class="form-control" required>
+                    </div>
 
-                <button type="submit">Submit Reservation</button>
-            </form>
-            <p id="reservation-status" class="status"></p>
-        </section>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Comment:</label>
+                        <textarea id="comment" name="comment" class="form-control"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Submit Reservation</button>
+                </form>
+                <p id="reservation-status" class="mt-3"></p>
+            </div>
+        </div>
 
         <?php if (session()->get('success')): ?>
-            <p class="status success"><?= session()->get('success') ?></p>
+            <div class="alert alert-success mt-4"><?= session()->get('success') ?></div>
         <?php endif; ?>
 
         <?php if (session()->get('error')): ?>
-            <p class="status error"><?= session()->get('error') ?></p>
+            <div class="alert alert-danger mt-4"><?= session()->get('error') ?></div>
         <?php endif; ?>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $('#generate-key').on('click', function() {
             $.ajax({
@@ -147,13 +95,13 @@
                 type: 'POST',
                 success: function(response) {
                     if (response.success) {
-                        $('#api-key-display').text('API Key: ' + response.api_key).addClass('success');
+                        $('#api-key-display').text('API Key: ' + response.api_key).addClass('text-success');
                     } else {
-                        $('#api-key-display').text('Error: ' + response.error).addClass('error');
+                        $('#api-key-display').text('Error: ' + response.error).addClass('text-danger');
                     }
                 },
                 error: function() {
-                    $('#api-key-display').text('An error occurred.').addClass('error');
+                    $('#api-key-display').text('An error occurred.').addClass('text-danger');
                 }
             });
         });
@@ -164,10 +112,10 @@
                 url: '<?= base_url('populate-database') ?>',
                 type: 'GET',
                 success: function(response) {
-                    $('#populate-status').text('Database successfully populated.').addClass('success');
+                    $('#populate-status').text('Database successfully populated.').addClass('text-success');
                 },
                 error: function() {
-                    $('#populate-status').text('An error occurred while populating the database.').addClass('error');
+                    $('#populate-status').text('An error occurred while populating the database.').addClass('text-danger');
                 }
             });
         });

@@ -143,7 +143,7 @@ class ApiController extends BaseController
         $post = json_decode($this->request->getBody());
 
         $data = $reservationModel
-            ->select('id, name, phone_number, email, date_reservation, guests, spot, comment, created_at, updated_at') // Specificeer alle velden behalve user_id
+            ->select('id, name, phone_number, email, date_reservation, guests, spot, comment, created_at, updated_at') 
             ->where('date_reservation >=', $post->date_start)
             ->where('date_reservation <=', $post->date_end)
             ->where('user_id', $this->get_user_id())

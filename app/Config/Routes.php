@@ -5,8 +5,9 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/', 'DashboardController::index', ['filter' => 'auth']);
-$routes->get('/documentation', 'Home::documentation', ['filter' => 'auth']);
+$routes->get('/dashboard', 'DashboardController::index', ['filter' => 'auth']);
+$routes->get('/', 'Home::documentation');
+
 $routes->post('apikey/store', 'ApiController::store', ['filter' => 'auth']);
 $routes->post('dashboard/submit_reservation', 'DashboardController::submitReservation');
 $routes->get('populate-database', 'DashboardController::populateDatabase');
