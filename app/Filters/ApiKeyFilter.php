@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 namespace App\Filters;
 
@@ -12,6 +12,15 @@ class ApiKeyFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
+        // Handle CORS preflight requests (OPTIONS method)
+        if ($request->getMethod() === 'OPTIONS') {
+            return Services::response()
+                ->setStatusCode(ResponseInterface::HTTP_OK)
+                ->setHeader('Access-Control-Allow-Origin', '*') // or the allowed origin
+                ->setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+                ->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        }
+
         // Get the Authorization header
         $authHeader = $request->getHeaderLine('Authorization');
 
@@ -21,21 +30,20 @@ class ApiKeyFilter implements FilterInterface
             $apiKey = substr($authHeader, 7);
 
             $apiKeyModel = new ApiKeyModel();
-
-
             $apiKeyRecord = $apiKeyModel->where('api_key', $apiKey)->first();
 
-
-            // Validate the API key (replace with your actual key or validation logic)
+            // Validate the API key
             if (!$apiKeyRecord) {
                 return Services::response()
                     ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED)
+                    ->setHeader('Access-Control-Allow-Origin', '*') // or the allowed origin
                     ->setJSON(['error' => 'Invalid API key']);
             }
         } else {
             // Return an error if the Authorization header is missing or does not contain a Bearer token
             return Services::response()
                 ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED)
+                ->setHeader('Access-Control-Allow-Origin', '*') // or the allowed origin
                 ->setJSON(['error' => 'Authorization header missing or incorrect']);
         }
     }
