@@ -14,7 +14,7 @@ $routes->get('populate-database', 'DashboardController::populateDatabase');
 
 
 
-$routes->group('api', ['filter' => 'apikey'], function ($routes) {
+$routes->group('api', ['filter' => ['cors', 'apikey']], function ($routes) {
     $routes->post('hello', 'ApiController::index');
     $routes->post('insert', 'ApiController::insert');
     $routes->post('get_reservations_between_dates', 'ApiController::get_reservations_between_dates');

@@ -44,6 +44,22 @@ Options -Indexes
 	ErrorDocument 404 index.php
 </IfModule>
 
+# ----------------------------------------------------------------------
+# CORS Handling
+# ----------------------------------------------------------------------
+
+<IfModule mod_headers.c>
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "POST, GET, OPTIONS, DELETE, PUT"
+    Header always set Access-Control-Allow-Headers "Authorization, Content-Type, Accept, Origin"
+    Header always set Access-Control-Max-Age "1000"
+</IfModule>
+
+# Handle OPTIONS requests (CORS Preflight Requests)
+RewriteEngine On
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=200,L]
+
 # Disable server signature start
 ServerSignature Off
 # Disable server signature end
