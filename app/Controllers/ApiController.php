@@ -306,5 +306,26 @@ class ApiController extends BaseController
             'message' => 'Database successfully populated with random reservations and availability data.',
         ]);
     }
+
+    public function getCampsiteSpots()
+    {
+        $campsiteSpotModel = new \App\Models\CampsiteSpotModel();
+
+        // Fetch all records from the campsite_spots table
+        $spots = $campsiteSpotModel->findAll();
+
+        if (!$spots) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'No campsite spots found.',
+            ]);
+        }
+
+        // Return the spots in JSON format
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $spots,
+        ]);
+    }
     
 }

@@ -21,6 +21,7 @@ $routes->group('api', ['filter' => ['cors', 'apikey']], function ($routes) {
     $routes->post('get_all', 'ApiController::get_all');
     $routes->post('populate-database', 'ApiController::populateDatabase');
     $routes->post('get-available-dates', 'ApiController::getAvailableDates');
+    $routes->post('get-campsite-spots', 'ApiController::getCampsiteSpots');
 
 });
 
