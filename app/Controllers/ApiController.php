@@ -4,9 +4,11 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\ApiKeyModel;
+use App\Models\UserModel;
 use App\Models\ReservationModel;
 use App\Models\SpotAvailabilityModel;
 use CodeIgniter\HTTP\ResponseInterface;
+Use App\Models\AuthIdentitiesModel;
 
 class ApiController extends BaseController
 {
@@ -190,37 +192,114 @@ class ApiController extends BaseController
 
         return $apiKeyRecord['user_id'];
     }
-    
 
-    public function store()
+    private function generateApiKeyForUser($userId)
     {
         $apiKeyModel = new ApiKeyModel();
-        $userId = auth()->id();
-    
-        // Controleer of er al een API-sleutel is voor deze gebruiker
+        
+        // Check if an API key already exists for this user
         $existingApiKey = $apiKeyModel->where('user_id', $userId)->first();
-    
-        // Genereer een nieuwe API-sleutel
+        
+        // Generate a new API key
         $apiKey = base64_encode(random_bytes(32));
-    
+
         if ($existingApiKey) {
-            // Als er al een API-sleutel is, werk deze dan bij
+            // Update the existing API key
             $existingApiKey['api_key'] = $apiKey;
-    
+
             if ($apiKeyModel->update($existingApiKey['id'], $existingApiKey)) {
-                return $this->response->setJSON(['success' => true, 'api_key' => $apiKey]);
+                return ['success' => true, 'api_key' => $apiKey];
             } else {
-                return $this->response->setJSON(['success' => false, 'error' => 'Could not update API key.']);
+                return ['success' => false, 'error' => 'Could not update API key.'];
             }
         } else {
-            // Als er geen API-sleutel is, maak een nieuwe
-            if ($apiKeyModel->save(['api_key' => $apiKey, 'user_id' => $userId])) {
-                return $this->response->setJSON(['success' => true, 'api_key' => $apiKey]);
+            // Create a new API key for this user
+            $apiKeyData = [
+                'user_id' => $userId,
+                'api_key' => $apiKey,
+            ];
+
+            if ($apiKeyModel->save($apiKeyData)) {
+                return ['success' => true, 'api_key' => $apiKey];
             } else {
-                return $this->response->setJSON(['success' => false, 'error' => 'Could not save API key.']);
+                return ['success' => false, 'error' => 'Could not save API key.'];
             }
         }
     }
+    
+
+    public function register()
+    {
+        $json = $this->request->getJSON();
+        $email = $json->email ?? null;
+
+        if (!$email) {
+            return $this->response->setJSON(['success' => false, 'error' => 'Email is required.']);
+        }
+
+        // Check if the user exists in the auth_identities table (by checking the email in the 'secret' column)
+        $authIdentitiesModel = new AuthIdentitiesModel();
+        $userModel = new UserModel();
+
+        $existingIdentity = $authIdentitiesModel->where('secret', $email)->first();
+
+        if ($existingIdentity) {
+            // Return the existing user's information along with the API key
+            $user = $userModel->find($existingIdentity['user_id']);
+            $apiKey = $this->generateApiKeyForUser($user['id']);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'user_id' => $user['id'],
+                'username' => $user['username'],
+                'email' => $email,
+                'api_key' => $apiKey
+            ]);
+        }
+
+        // Create a new user without requiring email or password
+        $userData = [
+            'username' => $json->username ?? 'generated_username',  // Get from request or generate
+        ];
+
+        if (!$userModel->save($userData)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'error' => 'Could not create user.',
+                'details' => $userModel->errors()
+            ]);
+        }
+
+        // Get the newly created user's ID
+        $userId = $userModel->getInsertID();
+
+        // Now insert into the auth_identities table
+        $identityData = [
+            'user_id' => $userId,
+            'type' => 'email_password',
+            'secret' => $email, // The user's email
+            'secret2' => password_hash(random_bytes(8), PASSWORD_DEFAULT), // Generate random password
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        if (!$authIdentitiesModel->save($identityData)) {
+            return $this->response->setJSON(['success' => false, 'error' => 'Could not create user identity.']);
+        }
+
+        // Generate an API key for the new user
+        $apiKey = $this->generateApiKeyForUser($userId);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'user_id' => $userId,
+            'username' => $userData['username'],
+            'email' => $email,
+            'api_key' => $apiKey
+        ]);
+    }
+
+
 
     public function populateDatabase()
     {
