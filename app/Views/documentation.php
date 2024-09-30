@@ -48,6 +48,47 @@ Body:
 </div>
 
 <div class="card mb-4 shadow-sm">
+    <div class="card-body" id="api-register">
+        <h2 class="card-title">User Registration and API Key</h2>
+        <p class="card-text">
+            <span class="badge bg-primary">POST</span> 
+            <span class="text-danger"><?= base_url() ?>api/register</span>
+        </p>
+        <p>This endpoint registers a new user and generates an API key for them.</p>
+
+        <h5>Request Headers:</h5>
+        <ul>
+            <li><strong>Content-Type:</strong> application/json</li>
+        </ul>
+
+        <h5>Example Request:</h5>
+        <div class="bg-light p-3 rounded border">
+            <pre>POST <?= base_url() ?>api/register
+Headers:
+Content-Type: application/json
+
+Body:
+{
+    "email": "newuser@example.com",
+    "password": "password123",
+    "username": "newuser"
+}</pre>
+        </div>
+
+        <h5>Example Response:</h5>
+        <div class="bg-warning p-3 rounded border">
+            <pre>{
+    "success": true,
+    "user_id": 2,
+    "username": "newuser",
+    "email": "newuser@example.com",
+    "api_key": "FxmjfkvXn2cb6iOZveYBKAAcNJCj9raiOVUJLaR+Eak="
+}</pre>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4 shadow-sm">
     <div class="card-body">
         <h2 class="card-title">Get Available Dates</h2>
         <p class="card-text">

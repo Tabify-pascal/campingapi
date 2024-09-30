@@ -164,34 +164,62 @@ class ApiController extends BaseController
 
     
     public function get_all()
-    {
-        $reservationModel = new ReservationModel();
-        $data = $reservationModel
-            ->select('id, name, phone_number, email, date_reservation, guests, spot, comment, created_at, updated_at') // Specificeer alle velden behalve user_id
-            ->where('user_id', $this->get_user_id())
-            ->findAll();
+{
+    $reservationModel = new ReservationModel();
     
-
-        if($data == null) {
-            $data = "Je hebt geen reserveringen";
-        }
-        
-        return $this->response->setStatusCode(201)->setJSON([
-            'success' => true,
-            'data'=> $data,
+    // Get the user's email using the API key
+    $userEmail = $this->get_user_email_by_api_key();
+    
+    // Check if we have a valid email before proceeding
+    if (!$userEmail) {
+        return $this->response->setStatusCode(400)->setJSON([
+            'success' => false,
+            'message' => 'Invalid API Key. No user associated with this key.',
         ]);
     }
 
+    // Retrieve reservations associated with the user's email
+    $data = $reservationModel
+        ->select('id, name, phone_number, email, date_reservation, guests, spot, comment, created_at, updated_at')
+        ->where('email', $userEmail)  // Filter by email instead of user_id
+        ->findAll();
 
-
-    private function get_user_id(){
-        $apiKeyModel = new ApiKeyModel();
-        $authHeader = $this->request->getHeaderLine('Authorization');
-        $apiKey = substr($authHeader, 7);
-        $apiKeyRecord = $apiKeyModel->where('api_key', $apiKey)->first();
-
-        return $apiKeyRecord['user_id'];
+    // If no reservations found, return a message
+    if ($data == null) {
+        return $this->response->setStatusCode(200)->setJSON([
+            'success' => true,
+            'message' => 'Je hebt geen reserveringen',  // No reservations found
+            'data' => [],
+        ]);
     }
+
+    // Return the retrieved reservations
+    return $this->response->setStatusCode(200)->setJSON([
+        'success' => true,
+        'data' => $data,
+    ]);
+}
+
+/**
+ * Get the user's email associated with the provided API key.
+ */
+private function get_user_email_by_api_key()
+{
+    $apiKeyModel = new ApiKeyModel();
+    $authHeader = $this->request->getHeaderLine('Authorization');
+    $apiKey = substr($authHeader, 7);  // Extract the API key from the header
+    $apiKeyRecord = $apiKeyModel->where('api_key', $apiKey)->first();
+
+    if (!$apiKeyRecord) {
+        return null;  // Return null if no matching API key is found
+    }
+
+    // Retrieve the email from the auth_identities table based on the user_id
+    $authIdentitiesModel = new AuthIdentitiesModel();
+    $userIdentity = $authIdentitiesModel->where('user_id', $apiKeyRecord['user_id'])->first();
+
+    return $userIdentity ? $userIdentity['secret'] : null;  // Return the email (stored in 'secret' column)
+}
 
     private function generateApiKeyForUser($userId)
     {
@@ -232,9 +260,16 @@ class ApiController extends BaseController
     {
         $json = $this->request->getJSON();
         $email = $json->email ?? null;
+        $password = $json->password ?? null;
+        $username = $json->username ?? null;
 
-        if (!$email) {
-            return $this->response->setJSON(['success' => false, 'error' => 'Email is required.']);
+        // Check if all required fields are present
+        if (!$email || !$password || !$username) {
+            return $this->response->setJSON([
+                'success' => false,
+                'api_key' => null,
+                'error' => 'Email, password, and username are required.'
+            ]);
         }
 
         // Check if the user exists in the auth_identities table (by checking the email in the 'secret' column)
@@ -244,29 +279,29 @@ class ApiController extends BaseController
         $existingIdentity = $authIdentitiesModel->where('secret', $email)->first();
 
         if ($existingIdentity) {
-            // Return the existing user's information along with the API key
+            // If the user exists, fetch their details and API key
             $user = $userModel->find($existingIdentity['user_id']);
             $apiKey = $this->generateApiKeyForUser($user['id']);
-
+    
             return $this->response->setJSON([
                 'success' => true,
                 'user_id' => $user['id'],
                 'username' => $user['username'],
                 'email' => $email,
-                'api_key' => $apiKey
+                'api_key' => $apiKey['api_key']
             ]);
         }
 
-        // Create a new user without requiring email or password
+        // If user doesn't exist, create a new user
         $userData = [
-            'username' => $json->username ?? 'generated_username',  // Get from request or generate
+            'username' => $username, 
         ];
 
         if (!$userModel->save($userData)) {
             return $this->response->setJSON([
                 'success' => false,
-                'error' => 'Could not create user.',
-                'details' => $userModel->errors()
+                'api_key' => null, 
+                'error' => 'Could not create user.'
             ]);
         }
 
@@ -277,14 +312,18 @@ class ApiController extends BaseController
         $identityData = [
             'user_id' => $userId,
             'type' => 'email_password',
-            'secret' => $email, // The user's email
-            'secret2' => password_hash(random_bytes(8), PASSWORD_DEFAULT), // Generate random password
+            'secret' => $email, 
+            'secret2' => password_hash($password, PASSWORD_DEFAULT),
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s')
         ];
 
         if (!$authIdentitiesModel->save($identityData)) {
-            return $this->response->setJSON(['success' => false, 'error' => 'Could not create user identity.']);
+            return $this->response->setJSON([
+                'success' => false,
+                'api_key' => null, 
+                'error' => 'Could not create user identity.'
+            ]);
         }
 
         // Generate an API key for the new user
@@ -293,9 +332,9 @@ class ApiController extends BaseController
         return $this->response->setJSON([
             'success' => true,
             'user_id' => $userId,
-            'username' => $userData['username'],
+            'username' => $username,
             'email' => $email,
-            'api_key' => $apiKey
+            'api_key' => $apiKey['api_key']
         ]);
     }
 
