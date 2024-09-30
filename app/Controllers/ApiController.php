@@ -4,9 +4,11 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\ApiKeyModel;
+use App\Models\UserModel;
 use App\Models\ReservationModel;
 use App\Models\SpotAvailabilityModel;
 use CodeIgniter\HTTP\ResponseInterface;
+Use App\Models\AuthIdentitiesModel;
 
 class ApiController extends BaseController
 {
@@ -162,65 +164,181 @@ class ApiController extends BaseController
 
     
     public function get_all()
+{
+    $reservationModel = new ReservationModel();
+    
+    // Get the user's email using the API key
+    $userEmail = $this->get_user_email_by_api_key();
+    
+    // Check if we have a valid email before proceeding
+    if (!$userEmail) {
+        return $this->response->setStatusCode(400)->setJSON([
+            'success' => false,
+            'message' => 'Invalid API Key. No user associated with this key.',
+        ]);
+    }
+
+    // Retrieve reservations associated with the user's email
+    $data = $reservationModel
+        ->select('id, name, phone_number, email, date_reservation, guests, spot, comment, created_at, updated_at')
+        ->where('email', $userEmail)  // Filter by email instead of user_id
+        ->findAll();
+
+    // If no reservations found, return a message
+    if ($data == null) {
+        return $this->response->setStatusCode(200)->setJSON([
+            'success' => true,
+            'message' => 'Je hebt geen reserveringen',  // No reservations found
+            'data' => [],
+        ]);
+    }
+
+    // Return the retrieved reservations
+    return $this->response->setStatusCode(200)->setJSON([
+        'success' => true,
+        'data' => $data,
+    ]);
+}
+
+/**
+ * Get the user's email associated with the provided API key.
+ */
+private function get_user_email_by_api_key()
+{
+    $apiKeyModel = new ApiKeyModel();
+    $authHeader = $this->request->getHeaderLine('Authorization');
+    $apiKey = substr($authHeader, 7);  // Extract the API key from the header
+    $apiKeyRecord = $apiKeyModel->where('api_key', $apiKey)->first();
+
+    if (!$apiKeyRecord) {
+        return null;  // Return null if no matching API key is found
+    }
+
+    // Retrieve the email from the auth_identities table based on the user_id
+    $authIdentitiesModel = new AuthIdentitiesModel();
+    $userIdentity = $authIdentitiesModel->where('user_id', $apiKeyRecord['user_id'])->first();
+
+    return $userIdentity ? $userIdentity['secret'] : null;  // Return the email (stored in 'secret' column)
+}
+
+    private function generateApiKeyForUser($userId)
     {
-        $reservationModel = new ReservationModel();
-        $data = $reservationModel
-            ->select('id, name, phone_number, email, date_reservation, guests, spot, comment, created_at, updated_at') // Specificeer alle velden behalve user_id
-            ->where('user_id', $this->get_user_id())
-            ->findAll();
+        $apiKeyModel = new ApiKeyModel();
+        
+        // Check if an API key already exists for this user
+        $existingApiKey = $apiKeyModel->where('user_id', $userId)->first();
+        
+        // Generate a new API key
+        $apiKey = base64_encode(random_bytes(32));
+
+        if ($existingApiKey) {
+            // Update the existing API key
+            $existingApiKey['api_key'] = $apiKey;
+
+            if ($apiKeyModel->update($existingApiKey['id'], $existingApiKey)) {
+                return ['success' => true, 'api_key' => $apiKey];
+            } else {
+                return ['success' => false, 'error' => 'Could not update API key.'];
+            }
+        } else {
+            // Create a new API key for this user
+            $apiKeyData = [
+                'user_id' => $userId,
+                'api_key' => $apiKey,
+            ];
+
+            if ($apiKeyModel->save($apiKeyData)) {
+                return ['success' => true, 'api_key' => $apiKey];
+            } else {
+                return ['success' => false, 'error' => 'Could not save API key.'];
+            }
+        }
+    }
     
 
-        if($data == null) {
-            $data = "Je hebt geen reserveringen";
+    public function register()
+    {
+        $json = $this->request->getJSON();
+        $email = $json->email ?? null;
+        $password = $json->password ?? null;
+        $username = $json->username ?? null;
+
+        // Check if all required fields are present
+        if (!$email || !$password || !$username) {
+            return $this->response->setJSON([
+                'success' => false,
+                'api_key' => null,
+                'error' => 'Email, password, and username are required.'
+            ]);
         }
-        
-        return $this->response->setStatusCode(201)->setJSON([
+
+        // Check if the user exists in the auth_identities table (by checking the email in the 'secret' column)
+        $authIdentitiesModel = new AuthIdentitiesModel();
+        $userModel = new UserModel();
+
+        $existingIdentity = $authIdentitiesModel->where('secret', $email)->first();
+
+        if ($existingIdentity) {
+            // If the user exists, fetch their details and API key
+            $user = $userModel->find($existingIdentity['user_id']);
+            $apiKey = $this->generateApiKeyForUser($user['id']);
+    
+            return $this->response->setJSON([
+                'success' => true,
+                'user_id' => $user['id'],
+                'username' => $user['username'],
+                'email' => $email,
+                'api_key' => $apiKey['api_key']
+            ]);
+        }
+
+        // If user doesn't exist, create a new user
+        $userData = [
+            'username' => $username, 
+        ];
+
+        if (!$userModel->save($userData)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'api_key' => null, 
+                'error' => 'Could not create user.'
+            ]);
+        }
+
+        // Get the newly created user's ID
+        $userId = $userModel->getInsertID();
+
+        // Now insert into the auth_identities table
+        $identityData = [
+            'user_id' => $userId,
+            'type' => 'email_password',
+            'secret' => $email, 
+            'secret2' => password_hash($password, PASSWORD_DEFAULT),
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        if (!$authIdentitiesModel->save($identityData)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'api_key' => null, 
+                'error' => 'Could not create user identity.'
+            ]);
+        }
+
+        // Generate an API key for the new user
+        $apiKey = $this->generateApiKeyForUser($userId);
+
+        return $this->response->setJSON([
             'success' => true,
-            'data'=> $data,
+            'user_id' => $userId,
+            'username' => $username,
+            'email' => $email,
+            'api_key' => $apiKey['api_key']
         ]);
     }
 
 
-
-    private function get_user_id(){
-        $apiKeyModel = new ApiKeyModel();
-        $authHeader = $this->request->getHeaderLine('Authorization');
-        $apiKey = substr($authHeader, 7);
-        $apiKeyRecord = $apiKeyModel->where('api_key', $apiKey)->first();
-
-        return $apiKeyRecord['user_id'];
-    }
-    
-
-    public function store()
-    {
-        $apiKeyModel = new ApiKeyModel();
-        $userId = auth()->id();
-    
-        // Controleer of er al een API-sleutel is voor deze gebruiker
-        $existingApiKey = $apiKeyModel->where('user_id', $userId)->first();
-    
-        // Genereer een nieuwe API-sleutel
-        $apiKey = base64_encode(random_bytes(32));
-    
-        if ($existingApiKey) {
-            // Als er al een API-sleutel is, werk deze dan bij
-            $existingApiKey['api_key'] = $apiKey;
-    
-            if ($apiKeyModel->update($existingApiKey['id'], $existingApiKey)) {
-                return $this->response->setJSON(['success' => true, 'api_key' => $apiKey]);
-            } else {
-                return $this->response->setJSON(['success' => false, 'error' => 'Could not update API key.']);
-            }
-        } else {
-            // Als er geen API-sleutel is, maak een nieuwe
-            if ($apiKeyModel->save(['api_key' => $apiKey, 'user_id' => $userId])) {
-                return $this->response->setJSON(['success' => true, 'api_key' => $apiKey]);
-            } else {
-                return $this->response->setJSON(['success' => false, 'error' => 'Could not save API key.']);
-            }
-        }
-    }
 
     public function populateDatabase()
     {
@@ -304,6 +422,27 @@ class ApiController extends BaseController
         return $this->response->setJSON([
             'success' => true,
             'message' => 'Database successfully populated with random reservations and availability data.',
+        ]);
+    }
+
+    public function getCampsiteSpots()
+    {
+        $campsiteSpotModel = new \App\Models\CampsiteSpotModel();
+
+        // Fetch all records from the campsite_spots table
+        $spots = $campsiteSpotModel->findAll();
+
+        if (!$spots) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'No campsite spots found.',
+            ]);
+        }
+
+        // Return the spots in JSON format
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $spots,
         ]);
     }
     

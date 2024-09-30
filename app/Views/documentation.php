@@ -48,6 +48,47 @@ Body:
 </div>
 
 <div class="card mb-4 shadow-sm">
+    <div class="card-body" id="api-register">
+        <h2 class="card-title">User Registration and API Key</h2>
+        <p class="card-text">
+            <span class="badge bg-primary">POST</span> 
+            <span class="text-danger"><?= base_url() ?>api/register</span>
+        </p>
+        <p>This endpoint registers a new user and generates an API key for them.</p>
+
+        <h5>Request Headers:</h5>
+        <ul>
+            <li><strong>Content-Type:</strong> application/json</li>
+        </ul>
+
+        <h5>Example Request:</h5>
+        <div class="bg-light p-3 rounded border">
+            <pre>POST <?= base_url() ?>api/register
+Headers:
+Content-Type: application/json
+
+Body:
+{
+    "email": "newuser@example.com",
+    "password": "password123",
+    "username": "newuser"
+}</pre>
+        </div>
+
+        <h5>Example Response:</h5>
+        <div class="bg-warning p-3 rounded border">
+            <pre>{
+    "success": true,
+    "user_id": 2,
+    "username": "newuser",
+    "email": "newuser@example.com",
+    "api_key": "FxmjfkvXn2cb6iOZveYBKAAcNJCj9raiOVUJLaR+Eak="
+}</pre>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4 shadow-sm">
     <div class="card-body">
         <h2 class="card-title">Get Available Dates</h2>
         <p class="card-text">
@@ -94,6 +135,70 @@ Body:
         "2024-09-01",
         "2024-09-03",
         "2024-09-05",
+        ...
+    ]
+}</pre>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <h2 class="card-title">Get Campsite Spots</h2>
+        <p class="card-text">
+            <span class="badge bg-primary">POST</span> 
+            <span class="text-danger"><?= base_url() ?>api/get-campsite-spots</span>
+        </p>
+        <p>This endpoint retrieves a list of all available campsite spots, including their price, number of guests, name, and type.</p>
+
+        <h5>Request Headers:</h5>
+        <ul>
+            <li><strong>Authorization:</strong> Bearer YOUR_API_KEY</li>
+            <li><strong>Content-Type:</strong> application/json</li>
+        </ul>
+
+        <h5>Request Body:</h5>
+        <div class="bg-light p-3 rounded border">
+            <pre>{}</pre> <!-- No request body required -->
+        </div>
+
+        <h5>Example Request:</h5>
+        <div class="bg-light p-3 rounded border">
+            <pre>POST <?= base_url() ?>api/get-campsite-spots
+Headers:
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+Body:
+{}</pre>
+        </div>
+
+        <h5>Example Response:</h5>
+        <div class="bg-warning p-3 rounded border">
+            <pre>{
+    "success": true,
+    "data": [
+        {
+            "id": 1,
+            "price": 120,
+            "number_of_guests": 4,
+            "name": "B1",
+            "type": "Bungalow"
+        },
+        {
+            "id": 2,
+            "price": 80,
+            "number_of_guests": 5,
+            "name": "T2",
+            "type": "Tent"
+        },
+        {
+            "id": 3,
+            "price": 50,
+            "number_of_guests": 2,
+            "name": "T3",
+            "type": "Tent"
+        },
         ...
     ]
 }</pre>
